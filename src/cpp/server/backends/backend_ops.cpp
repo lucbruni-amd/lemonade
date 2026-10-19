@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include "lemon/backends/backend_registry.h"
 #include "lemon/backends/backend_utils.h"
 #include "lemon/backends/hf_cache_util.h"
 #include "lemon/runtime_config.h"
@@ -137,6 +138,9 @@ std::optional<utils::SetupReport> container_setup_failure(const std::string& rec
     const auto& manager = utils::ContainerManager::global();
     utils::SetupReport report;
     report.failures = manager.check_host();
+    if (auto failure = ops_for(recipe)->check_container_host(backend)) {
+        report.failures.push_back(*failure);
+    }
     const auto* cfg = RuntimeConfig::global();
     if (!cfg || !cfg->enable_containers()) {
         report.failures.push_back({"enable_containers", "enable_containers is false",
